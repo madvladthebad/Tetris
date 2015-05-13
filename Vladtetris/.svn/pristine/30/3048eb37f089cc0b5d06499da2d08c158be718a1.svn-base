@@ -1,0 +1,63 @@
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+/**
+ * 
+ * @author Vladimir Gudzyuk
+ * @version TCSS 305 Spring 2013
+ */
+@SuppressWarnings("serial")
+public class TetrisScorePanel extends JPanel {
+  
+  private static final Dimension DEFUALT_SIZE = new Dimension(200, 100);
+  
+  private int my_score;
+  
+  private int my_level;
+  
+  /**
+   * the timer use to call update and move the piece down.
+   */
+  
+  private final Timer my_move_timer;
+  
+  public TetrisScorePanel(Timer the_move_timer) {
+    super();
+    
+    my_move_timer = the_move_timer;
+    setPreferredSize(DEFUALT_SIZE);
+    
+    setBackground(Color.MAGENTA);
+    
+    my_level = 1;
+    
+    setBorder(BorderFactory.createLineBorder(Color.BLACK));
+  }
+  public void paintComponent(final Graphics the_graphics) {
+    
+    super.paintComponent(the_graphics);
+    final Graphics2D g2d = (Graphics2D) the_graphics;
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    
+    g2d.drawString("SCORE: " + my_score, 10, 20);
+    g2d.drawString("LEVEL: " + my_level, 10, 60);
+   }
+  public void addScore(final int the_score) {
+    my_score += the_score;
+    if (my_score % 100 == 0 && my_move_timer.getDelay() >= 400) {
+      int x = my_move_timer.getDelay();
+      my_move_timer.setDelay(x - 100);
+    }
+    my_level = (my_score/100) + 1;
+  }
+
+}

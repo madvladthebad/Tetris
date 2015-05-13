@@ -1,0 +1,118 @@
+package view;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+//import java.awt.event.KeyAdapter;
+//import java.awt.event.KeyEvent;
+//import java.awt.event.KeyListener;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+
+import model.Block;
+import model.Board;
+
+@SuppressWarnings("serial")
+public class TetrisPanel extends JPanel {
+  
+  private static final Dimension DEFUALT_SIZE = new Dimension(200, 400);
+  
+  private Board my_playing_board;
+  
+  private final Timer my_move_timer;
+  
+  
+  public TetrisPanel(Board the_playing_board) {
+    super();
+    setPreferredSize(DEFUALT_SIZE);
+    setBackground(Color.WHITE);
+    my_playing_board = the_playing_board;
+    addKeyListener(new  MyKeyboardListener(my_playing_board));
+    my_move_timer = new Timer(1000, new TimeActionListener() );
+    setFocusable(true);
+     my_move_timer.start();
+    
+  }
+  
+  
+  public void paintComponent(final Graphics the_graphics) {
+    
+    //for (int k =0; k< 1; k++) {
+      //my_playing_board.step();
+    //}
+    
+    super.paintComponent(the_graphics);
+    final Graphics2D g2d = (Graphics2D) the_graphics;
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setPaint(Color.LIGHT_GRAY);
+    g2d.setStroke(new BasicStroke(1));
+    for (int row =0; row <= 20; row++) {
+      
+      g2d.drawLine(0, 20*row, 200, 20*row);
+    }
+    for (int column =0; column <= 10; column++) {
+      g2d.drawLine(column*20, 0, column*20, 400);
+    }
+    for (int i = 0; i < 11; i++) {
+      //final Block[] row_blocks = my_playing_board.getFrozenBlocks().get(i);
+      for (int j = 0; j < 21; j++) {
+        if (my_playing_board.currentPieceAt(i, j)) {
+          //System.out.println(my_playing_board);
+          //System.out.println(my_playing_board.getCurrentPiece().getX() + " " + my_playing_board.getCurrentPiece().getY());
+          g2d.setPaint(Color.RED);
+          g2d.fill3DRect(((i) * 20), 360 - ((j - 1) * 20), 20, 20, true);
+        }
+        if (my_playing_board.blockAt(i, j) != null && my_playing_board.blockAt(i, j) != Block.EMPTY) {
+          g2d.setPaint(Color.BLUE);
+          g2d.fill3DRect(((i) * 20), 360 - ((j - 1) * 20), 20, 20, false);
+        }
+      }
+    }
+    
+  }
+public class TimeActionListener implements  ActionListener {
+    
+
+    @Override
+    public void actionPerformed(final ActionEvent the_event) {
+      if (the_event.getSource().equals(my_move_timer)) {
+        my_playing_board.step();
+      }
+    }
+
+
+  }
+  
+  /*public class MyKeyboardListener extends KeyAdapter  {
+    
+    private Board my_main_playing_board;
+    
+    public  MyKeyboardListener(Board the_playing_board) {
+      my_main_playing_board = the_playing_board;
+    }
+    
+    @Override
+    public void keyPressed(final KeyEvent the_event) {
+      System.out.println(the_event.getKeyCode());
+      final int x = the_event.getKeyCode();
+      if (x == 37 ) {
+        my_main_playing_board.moveRight();
+      } else if (x == KeyEvent.VK_KP_LEFT ) {
+        my_main_playing_board.moveLeft();
+      } else if (x == KeyEvent.VK_KP_UP ) {
+        my_main_playing_board.rotate();
+      } else if (x == 32 ) {
+        my_main_playing_board.hardDrop();
+      }
+    }
+
+  }*/
+}
+

@@ -1,0 +1,572 @@
+/*
+ * TCSS305 Spring 2013
+ */
+
+package model;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Random;
+
+/**
+ * A representation of a Tetris game board.
+ * 
+ * @author Alan Fowler
+ * @version Spring 2013
+ */
+public final class Board extends Observable {
+  // constants
+  /**
+   * the int ammout the score increases by for each
+   * line cleared.
+   */
+  private static int DEFAULT_SCORE_STEP = 50;
+
+  /** The width of a standard Tetris board. */
+  private static final int DEFAULT_WIDTH = 10;
+
+  /** The height of a standard Tetris board. */
+  private static final int DEFAULT_HEIGHT = 20;
+
+  /** The representation of the side walls of the board in string output. */
+  private static final String WALL = "|";
+
+  /** The representation of the board corners in string output. */
+  private static final String CORNER = "+";
+
+  /** The representation of the board floor in string output. */
+  private static final String FLOOR = "-";
+
+  /** The representation of an empty grid position in string output. */
+  private static final String EMPTY = " ";
+
+  /** The representation of a frozen block in string output. */
+  private static final String FROZEN = "X";
+
+  /** The representation of the current piece's position in string output. */
+  private static final String CURRENT_PIECE = "*";
+
+  /** The random number generator used for choosing new pieces. */
+  private static final Random RANDOM = new Random();
+
+  /** The minimum size of a board. */
+  private static final int MIN_SIZE = 5;
+
+  /** The number of rotations to return a piece to initial state. */
+  private static final int ROTATIONS = 4;
+
+  /** The number of extra rows above the board to display in String output. */
+  private static final int EXTRA_ROWS = 4;
+
+  // instance fields
+
+  /**
+   * The width of this Tetris board.
+   */
+  private int my_width;
+
+  /**
+   * The height of this Tetris board.
+   */
+  private int my_height;
+
+  /**
+   * The current frozen blocks on the board.
+   */
+  private final List<Block[]> my_blocks;
+
+  /**
+   * The piece currently being moved on the board.
+   */
+  private MutablePiece my_current_piece;
+
+  /**
+   * The next piece to be used in the board.
+   */
+  private MutablePiece my_next_piece;
+
+  /**
+   * The predetermined list of pieces to be fed into the board.
+   */
+  private List<MutablePiece> my_pieces;
+
+  /**
+   * The boolean representing the game state of Tetris.
+   */
+  private boolean my_game_is_over;
+
+  /**
+   * Constructs a Board using the specified dimensions.
+   * 
+   * @param the_width the height to assign
+   * @param the_height the width to assign
+   * @param the_pieces the sequence of pieces to use; empty list indicates a
+   *          random game
+   */
+  public Board(final int the_width,
+               final int the_height,
+               final List<MutablePiece> the_pieces) {
+    super();
+    my_pieces = new ArrayList<>();
+    my_blocks = new LinkedList<Block[]>();
+    newGame(the_width, the_height, the_pieces);
+  }
+
+  /**
+   * Constructs a Board using default dimensions (10x20) and random pieces.
+   */
+  public Board() {
+    this(DEFAULT_WIDTH, DEFAULT_HEIGHT, new LinkedList<MutablePiece>());
+  }
+
+  /**
+   * Creates a new game on a Board of the specified width and height and loads
+   * the given set of pieces.
+   * 
+   * @param the_width The width of the board
+   * @param the_height The height of the board
+   * @param the_pieces The pieces to use
+   */
+  public void newGame(final int the_width, final int the_height,
+                      final List<MutablePiece> the_pieces) {
+    if (the_width < MIN_SIZE || the_height < MIN_SIZE) {
+      throw new IllegalArgumentException();
+    }
+    my_current_piece = null;
+    my_width = the_width;
+    my_height = the_height;
+    my_blocks.clear();
+    if (the_pieces == null) {
+      my_pieces.clear();
+    } else {
+      my_pieces = the_pieces;
+    }
+    my_game_is_over = false;
+    setNextPiece();
+    assignCurrentPiece();
+    setChanged();
+    notifyObservers();
+  }
+
+  /**
+   * @return the width
+   */
+  public int getWidth() {
+    return my_width;
+  }
+
+  /**
+   * @return the height
+   */
+  public int getHeight() {
+    return my_height;
+  }
+
+  /**
+   * Returns the current frozen blocks on the board.
+   * 
+   * @return the current frozen blocks on the board.
+   */
+  public List<Block[]> getFrozenBlocks() {
+    return my_blocks;
+  }
+
+  /**
+   * Returns the current Piece being moved.
+   * 
+   * @return the current Piece being moved.
+   */
+  public MutablePiece getCurrentPiece() {
+    return my_current_piece;
+  }
+
+  /**
+   * Attempts to move the current piece to the left.
+   * 
+   * @return true if it is possible to move the current piece to the left; false
+   *         otherwise
+   */
+  public boolean moveLeft() {
+    final int[][] blocks = ((AbstractPiece) my_current_piece).getBoardCoordinates();
+    boolean can_pass = true;
+
+    // perform bounds checking on each block
+    for (int i = 0; i < blocks.length; i++) {
+      if (blocks[i][0] == 0 || // block is already at the left wall
+          blockAt(blocks[i][0] - 1, blocks[i][1]) != Block.EMPTY) {
+        // block to left is occupied
+        can_pass = false;
+        break; // can't move, no need to keep checking
+      }
+    }
+
+    if (can_pass) {
+      my_current_piece.moveLeft();
+      setChanged();
+      notifyObservers();
+    }
+    return can_pass;
+  }
+
+  /**
+   * Attempts to move the current piece to the right.
+   * 
+   * @return true if it is possible to move the current piece to the right;
+   *         false otherwise
+   */
+  public boolean moveRight() {
+    final int[][] blocks = ((AbstractPiece) my_current_piece).getBoardCoordinates();
+    boolean can_pass = true;
+
+    // perform bounds checking on each block
+    for (int i = 0; i < blocks.length; i++) {
+      if (blocks[i][0] == my_width - 1 || // block is already at the right wall
+          blockAt(blocks[i][0] + 1, blocks[i][1]) != Block.EMPTY) {
+        // block to right is occupied
+        can_pass = false;
+        break; // can't move, no need to keep checking
+      }
+    }
+
+    if (can_pass) {
+      my_current_piece.moveRight();
+      setChanged();
+      notifyObservers();
+    }
+    return can_pass;
+  }
+
+  /**
+   * Attempts to move the current piece down.
+   * 
+   * @return true if it is possible to move the current piece down; false
+   *         otherwise
+   */
+  public boolean moveDown() {
+    final int[][] blocks = ((AbstractPiece) my_current_piece).getBoardCoordinates();
+    boolean can_pass = true;
+
+    // perform bounds checking on each block
+    for (int i = 0; i < blocks.length; i++) {
+      // Is this block at the bottom, or is there a piece below it?
+      if (blocks[i][1] == 0 || // block is at the bottom
+          blockAt(blocks[i][0], blocks[i][1] - 1) != Block.EMPTY) {
+        // block below is occupied
+        can_pass = false;
+        break; // can't move, no need to keep checking
+      }
+    }
+
+    if (can_pass) {
+      my_current_piece.moveDown();
+      setChanged();
+      notifyObservers();
+    } else {
+      freeze();
+    }
+    return can_pass;
+  }
+
+  /**
+   * Drops the current Piece all the way down.
+   */
+  public void hardDrop() {
+    boolean can_pass = true;
+    while (can_pass) {
+      can_pass = moveDown();
+    }
+  }
+
+  /**
+   * Attempts to rotate the current piece clockwise.
+   * 
+   * @return true if it is possible to rotate the current piece; false otherwise
+   */
+  public boolean rotate() {
+    my_current_piece.rotate();
+    final int[][] blocks = ((AbstractPiece) my_current_piece).getBoardCoordinates();
+    boolean can_pass = true;
+
+    for (int[] dimension : blocks) {
+      if (dimension[0] >= my_width || blockAt(dimension[0], dimension[1]) != Block.EMPTY) {
+
+        for (int i = 1; i < ROTATIONS; i++) {
+          my_current_piece.rotate();
+        }
+        can_pass = false;
+        break;
+      }
+    }
+    if (can_pass) {
+      setChanged();
+      notifyObservers();
+    }
+    return can_pass;
+  }
+
+  /**
+   * Updates the game by one step.
+   */
+  public void step() {
+    moveDown();
+  }
+
+  /**
+   * Returns the next piece to be used.
+   * 
+   * @return the next piece to be used.
+   */
+  public MutablePiece getNextPiece() {
+    return my_next_piece;
+  }
+
+  /**
+   * Returns whether the game is over or not.
+   * 
+   * @return Whether the game is over or not.
+   */
+  public boolean gameIsOver() {
+    return my_game_is_over;
+  }
+
+  /**
+   * Initializes the current piece.
+   */
+  private void assignCurrentPiece() {
+    my_current_piece = my_next_piece;
+    setNextPiece();
+  }
+
+  /**
+   * Sets the next piece.
+   */
+  private void setNextPiece() {
+    if (my_pieces == null || my_pieces.isEmpty()) {
+      my_next_piece = randomPiece(my_width / 2 - 2, my_height);
+    } else {
+      my_next_piece = my_pieces.remove(0);
+    }
+  }
+
+  /**
+   * Creates a new piece randomly chosen from the possible pieces at the
+   * specified coordinates.
+   * 
+   * @param the_x The x-coordinate
+   * @param the_y The y-coordinate
+   * 
+   * @return A randomly chosen piece
+   */
+  private MutablePiece randomPiece(final int the_x, final int the_y) {
+    final Block[] blocks = Block.values();
+    MutablePiece result;
+
+    switch (blocks[RANDOM.nextInt(blocks.length)]) {
+      case I:
+        result = new IPiece(the_x, the_y);
+        break;
+
+      case J:
+        result = new JPiece(the_x, the_y);
+        break;
+
+      case L:
+        result = new LPiece(the_x, the_y);
+        break;
+
+      case O:
+        result = new OPiece(the_x, the_y);
+        break;
+
+      case S:
+        result = new SPiece(the_x, the_y);
+        break;
+
+      case T:
+        result = new TPiece(the_x, the_y);
+        break;
+
+      case Z:
+        result = new ZPiece(the_x, the_y);
+        break;
+
+      default: // If EMPTY try again
+        result = randomPiece(the_x, the_y);
+        break;
+    }
+    return result;
+  }
+
+  /**
+   * Retrieves the block at the specified coordinates.
+   * 
+   * @param the_x The x-coordinate
+   * @param the_y The y-coordinate
+   * 
+   * @return The block at the specified coordinates, EMPTY if there is no block
+   *         at the specified coordinates, null if the specified coordinates are
+   *         outside of the board
+   */
+  
+  /////////////////////////////////////////////////////////////changed from private to public
+  public Block blockAt(final int the_x, final int the_y) {
+    Block result = null; // outside the board coordinates
+    if (the_x < my_width && the_x >= 0 && the_y >= 0) {
+      // inside the board
+      result = Block.EMPTY; // blocks above the board are empty
+      if (the_y < my_blocks.size()) {
+        result = my_blocks.get(the_y)[the_x];
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Evaluates if the current piece occupies the provided position.
+   * 
+   * @param the_x The x-coordinate to examine
+   * @param the_y The y-coordinate to examine
+   * @return true if the current piece occupies the position, false otherwise
+   */
+  //changed form private to public//////////////////////////////////////////////////////////
+  public boolean currentPieceAt(final int the_x, final int the_y) {
+    boolean result = false;
+    final int[][] blocks = ((AbstractPiece) my_current_piece).getBoardCoordinates();
+
+    for (int block = 0; block < blocks.length; block++) {
+      if (blocks[block][1] == the_y && blocks[block][0] == the_x) {
+        result = true;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * The current piece cannot move down so add its blocks to the board.
+   */
+  private void freeze() {
+    final int[][] coordinates = ((AbstractPiece) my_current_piece).getBoardCoordinates();
+
+    for (int block = 0; block < coordinates.length; block++) {
+      final int x = coordinates[block][0];
+      final int y = coordinates[block][1];
+
+      // Add rows until this block can fit in one.
+      while (y >= my_blocks.size()) {
+        final Block[] new_row = new Block[my_width];
+        for (int i = 0; i < my_width; i++) {
+          new_row[i] = Block.EMPTY;
+        }
+        my_blocks.add(new_row);
+      }
+      final Block[] row = my_blocks.get(y);
+      row[x] = ((AbstractPiece) my_current_piece).getBlock();
+    }
+    clearLines();
+    if (my_current_piece.getY() > my_height - 2) {
+      my_game_is_over = true;
+    }
+    assignCurrentPiece();
+    setChanged();
+    notifyObservers();
+  }
+
+  /**
+   * Checks if there are any lines that need to be cleared and removes them from
+   * the board.
+   */
+  private void clearLines() {
+    for (int i = my_blocks.size() - 1; i >= 0; i--) {
+      boolean clear = true;
+      final Block[] blocks = my_blocks.get(i);
+
+      for (Block block : blocks) {
+        if (block == Block.EMPTY) {
+          clear = false;
+          break;
+        }
+      }
+      if (clear) {
+        my_blocks.remove(i);
+        //////moved up to only notify observer only when line are being cleared./////////////
+        setChanged();
+        notifyObservers(DEFAULT_SCORE_STEP);
+      }
+    }
+    //setChanged();
+    //notifyObservers(10);
+  }
+
+  /**
+   * Returns a string that represents the current state of the board.
+   * 
+   * @return The string representation of the board
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+
+    for (int i = my_height + EXTRA_ROWS - 1; i > my_height - 1; i--) {
+      sb.append(EMPTY);
+      sb.append(getRowString(i));
+      sb.append('\n');
+    }
+
+    for (int i = my_height - 1; i >= 0; i--) {
+      sb.append(WALL);
+      sb.append(getRowString(i));
+      sb.append(WALL);
+      sb.append('\n');
+    }
+    sb.append(CORNER);
+    for (int i = 0; i < my_width; i++) {
+      sb.append(FLOOR);
+    }
+    sb.append(CORNER);
+    return sb.toString();
+  }
+
+  /**
+   * Returns a string representing the blocks in the given row.
+   * 
+   * @param the_row The row to represent
+   * @return The string representation
+   */
+  private String getRowString(final int the_row) {
+    final StringBuilder sb = new StringBuilder();
+
+    if (my_blocks.size() - 1 < the_row) {
+      for (int col = 0; col < my_width; col++) {
+        if (currentPieceAt(col, the_row)) {
+          sb.append(CURRENT_PIECE);
+        } else {
+          sb.append(EMPTY);
+        }
+      }
+    } else {
+      final Block[] row_blocks = my_blocks.get(the_row);
+
+      for (int i = 0; i < my_width; i++) {
+        if (currentPieceAt(i, the_row)) {
+          sb.append(CURRENT_PIECE);
+        } else if (row_blocks[i] == Block.EMPTY) {
+          sb.append(EMPTY);
+        } else {
+          sb.append(FROZEN);
+        }
+      }
+    }
+    return sb.toString();
+  }
+
+  /*public static void main(final String[] the_args) {
+    final Board b1 = new Board();
+    while (!b1.my_game_is_over) {
+      b1.step();
+      System.out.print(b1);
+      System.out.println(b1.getCurrentPiece().getX());
+      System.out.println(b1.getCurrentPiece().getY());
+    }
+  }*/
+}

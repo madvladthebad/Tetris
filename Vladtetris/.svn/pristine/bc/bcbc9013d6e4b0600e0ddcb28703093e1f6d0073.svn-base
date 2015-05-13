@@ -1,0 +1,31 @@
+package view;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import model.Board;
+
+public class MyKeyboardListener extends KeyAdapter  {
+  
+  private Board my_main_playing_board;
+  
+  public  MyKeyboardListener(Board the_playing_board) {
+    my_main_playing_board = the_playing_board;
+  }
+  
+  public void keyPressed(final KeyEvent the_event) {
+    System.out.println(the_event.getKeyCode());
+    int x = the_event.getKeyCode();
+    if (x == 37 ) {
+      my_main_playing_board.moveRight();
+    } else if (x == KeyEvent.VK_KP_LEFT ) {
+      my_main_playing_board.moveLeft();
+    } else if (x == KeyEvent.VK_KP_UP ) {
+      my_main_playing_board.rotate();
+    } else if (x == 32 ) {
+      my_main_playing_board.hardDrop();
+    }
+  }
+
+}
+

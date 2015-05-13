@@ -1,0 +1,109 @@
+/* 
+* TCSS 305 – Spring 2013
+
+* Assignment Tetris
+*/
+
+package view;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+import model.Block;
+import model.Board;
+
+
+/**
+ * 
+ * @author Vladimir
+ *@version TCSS 305 Spring 2013
+ */
+@SuppressWarnings("serial")
+public class TetrisPanel extends JPanel {
+  
+  private static final int TIMER_INTERVAL = 1000;
+  
+  /**
+   * the defalut square pixel size.
+   */
+  
+  private static final int SQUARE_SIZE = 20;
+  
+  /**
+   * the default playing size for the tetris playing board.
+   */
+  
+  private static final Dimension DEFUALT_SIZE = new Dimension(200, 423);
+  /**
+   * the playing board to be played on.
+   */
+  
+  private final Board my_playing_board;
+  
+  /**
+   * 
+   * @param the_playing_board the board set to be played on.
+   */
+  public TetrisPanel(final Board the_playing_board) {
+    super();
+    setPreferredSize(DEFUALT_SIZE);
+    setBackground(Color.WHITE);
+    my_playing_board = the_playing_board;
+    setFocusable(true);
+
+    
+  }
+  
+  /**
+   * the board peieces that are drawn and grid.
+   * 
+   * @param the_graphics the graphics to be drawn
+   */
+  public void paintComponent(final Graphics the_graphics) {
+    
+    super.paintComponent(the_graphics);
+    final Graphics2D g2d = (Graphics2D) the_graphics;
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setPaint(Color.LIGHT_GRAY);
+    g2d.setStroke(new BasicStroke(1));
+    for (int row = 0; row <= SQUARE_SIZE; row++) {
+      
+      g2d.drawLine(0, SQUARE_SIZE * row, 200, SQUARE_SIZE * row);
+    }
+    for (int column = 0; column <= 10; column++) {
+      g2d.drawLine(column * SQUARE_SIZE, 0, column * SQUARE_SIZE, 400);
+    }
+    for (int i = 0; i < 11; i++) {
+      //final Block[] row_blocks = my_playing_board.getFrozenBlocks().get(i);
+      for (int j = 0; j < 21; j++) {
+        if (my_playing_board.currentPieceAt(i, j)) {
+          //System.out.println(my_playing_board);
+          g2d.setPaint(Color.RED);
+          g2d.fill3DRect(i * SQUARE_SIZE, 360 - ((j - 1) 
+              * SQUARE_SIZE), SQUARE_SIZE, SQUARE_SIZE, true);
+        }
+        if (my_playing_board.blockAt(i, j) != null 
+            && my_playing_board.blockAt(i, j) != Block.EMPTY) {
+          g2d.setPaint(Color.BLUE);
+          g2d.fill3DRect(i * SQUARE_SIZE, 360 - ((j - 1) 
+              * SQUARE_SIZE), SQUARE_SIZE, SQUARE_SIZE, true);
+        }
+      }
+    }
+    if (my_playing_board.gameIsOver()) {
+      g2d.fillRect(0, 0, 200, 400);
+      g2d.setPaint(Color.LIGHT_GRAY);
+      g2d.drawString("Game Over!", 75, 200);
+    }
+    
+  }
+}
+
+

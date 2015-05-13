@@ -1,0 +1,146 @@
+package view;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.Timer;
+
+import model.Board;
+
+@SuppressWarnings("serial")
+public class TetrisMenuBar extends JMenuBar {
+  
+  private final Board my_playing_board;
+  
+  /**
+   * the timer used to pause the game 
+   */
+  
+  private final Timer my_move_timer;
+  
+  private final JFrame my_frame;
+  
+  private final MyKeyboardListener my_key_listner;
+  
+  private boolean my_game_paused;
+  
+  private final JMenu my_game_menu = new JMenu("Game");
+  
+  private final JMenu my_options_menu = new JMenu("Options");
+  
+  private final JMenu my_help_menu = new JMenu("Help");
+
+  public TetrisMenuBar(final Timer the_move_timer, final Board the_board, 
+                       final JFrame the_frame, final MyKeyboardListener the_key_listner) {
+    super();
+    my_frame = the_frame;
+    my_playing_board = the_board;
+    my_move_timer = the_move_timer;
+    my_key_listner = the_key_listner;
+    setUp();
+  }
+  
+  public void setUp() {
+    
+    
+    final JMenuItem end_button = new JMenuItem("End Game");
+    
+    final JMenuItem new_game_button = new JMenuItem("New Game");
+    
+    final JMenuItem exit_button = new JMenuItem("Exit");
+    
+    final JMenuItem about_button = new JMenuItem("About...");
+    
+    final JRadioButtonMenuItem easy_setting = new JRadioButtonMenuItem("easy");
+    /**
+     * creates a thickness button to set the shape thickness in Jpanel when selected.
+     */
+    
+    final JRadioButtonMenuItem medium_setting = new JRadioButtonMenuItem("medium");
+    
+    /**
+     * creates a thickness button to set the shape thickness to 4 in Jpanel when selected.
+     */
+    
+    final JRadioButtonMenuItem hard_setting = new JRadioButtonMenuItem("hard");
+    
+    easy_setting.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        my_move_timer.setDelay(900);
+      }
+    });
+    medium_setting.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        my_move_timer.setDelay(600);
+      }
+    });
+    hard_setting.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        my_move_timer.setDelay(300);
+      }
+    });
+    
+    
+    exit_button.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        my_frame.dispose();
+      }
+    });
+    
+    new_game_button.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        my_playing_board.newGame(10, 20, null);
+        my_move_timer.setDelay(900);
+        my_move_timer.start();
+        my_key_listner.setPaused(false);
+      }
+    });
+    final ButtonGroup group_difficulty = new ButtonGroup();
+    
+    group_difficulty.add(easy_setting);
+    group_difficulty.add(medium_setting);
+    group_difficulty.add(hard_setting);
+    
+    end_button.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        
+        my_move_timer.stop();
+        my_key_listner.setPaused(true);
+        
+      }
+    });
+    
+    about_button.addActionListener(new ActionListener() {
+      public void actionPerformed(final ActionEvent the_event) {
+        final JFrame pop_frame = new JFrame("Message");
+        JOptionPane.showMessageDialog(pop_frame,
+            "Tetris Made by Vladimir Gudzyuk, in TCSS 305 Spring 2013");
+      }
+    });
+    
+    JMenu settings_menu = new JMenu("Difficulty");
+    
+    
+    settings_menu.add(easy_setting);
+    settings_menu.add(medium_setting);
+    settings_menu.add(hard_setting);
+    
+    my_options_menu.add(settings_menu);
+    
+    my_help_menu.add(about_button);
+    my_game_menu.add(end_button);
+    my_game_menu.add(new_game_button);
+    my_game_menu.add(exit_button);
+    
+    add(my_game_menu);
+    add(my_options_menu);
+    add(my_help_menu);
+  }
+}

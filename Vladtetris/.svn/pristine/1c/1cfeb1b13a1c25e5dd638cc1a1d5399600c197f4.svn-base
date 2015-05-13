@@ -1,0 +1,84 @@
+package view;
+
+import java.awt.BorderLayout;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import model.Board;
+
+@SuppressWarnings("serial")
+public class TetrisGUI extends JPanel implements Observer {
+  
+  Board my_playing_board;
+  
+  //private final Timer my_move_timer;
+  
+  private JFrame gui_frame;
+  
+  private JPanel side_gui_frame;
+  
+  private TetrisPanel panel;
+  
+  private KeyControlsPanel panelkey;
+  
+  private NextPiecePanel my_next_piece_panel;
+  
+  public TetrisGUI() {
+    
+   my_playing_board = new Board();
+   
+   //my_playing_board.addObserver(this);
+   
+   gui_frame = new JFrame("Tetris");
+   
+   side_gui_frame = new JPanel(new BorderLayout());
+   
+   panel = new TetrisPanel(my_playing_board);
+   
+   panelkey = new KeyControlsPanel();
+   
+   my_next_piece_panel = new NextPiecePanel(my_playing_board);
+   
+   
+   
+    
+    my_playing_board.addObserver(this);
+    
+    //panel.addKeyListener(new  MyKeyboardListener(my_playing_board));
+    start();
+    
+    
+  }
+  private void start() {
+    
+    
+    
+    
+    
+    gui_frame.add(panel, BorderLayout.CENTER);
+    side_gui_frame.add(my_next_piece_panel, BorderLayout.NORTH);
+    side_gui_frame.add(panelkey, BorderLayout.SOUTH);
+    
+    gui_frame.add(side_gui_frame, BorderLayout.EAST);
+    gui_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    gui_frame.pack();
+    gui_frame.setLocationRelativeTo(null);
+    gui_frame.setVisible(true);
+    
+    
+  }
+  
+
+  @Override
+  public void update(final Observable the_arg, final Object arg1) {
+    //System.out.println("observer observed");
+    my_next_piece_panel.repaint();
+    panel.repaint();
+    //((Board) arg1).step();
+    //my_playing_board.step();
+    
+  }
+
+}

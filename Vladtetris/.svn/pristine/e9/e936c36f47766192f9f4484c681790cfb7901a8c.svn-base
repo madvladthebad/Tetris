@@ -1,0 +1,21 @@
+package view;
+
+
+import java.awt.EventQueue;
+
+public class TetrisMain {
+  
+  private TetrisMain() {
+    throw new IllegalStateException();
+  }
+public static void main(final String... the_args) {
+    
+    EventQueue.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        new TetrisGUI(); // create the graphical user interface
+      }
+    });
+  }
+
+}

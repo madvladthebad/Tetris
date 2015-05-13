@@ -1,0 +1,43 @@
+
+/* 
+* TCSS 305 – Spring 2013
+
+* Assignment Tetris
+*/
+package view;
+
+import java.awt.EventQueue;
+
+
+/**
+ * 
+ * @author Vladimir
+ *@version TCSS 305 Spring 2013
+ */
+public final class TetrisMain {
+  /**
+   * main method that runs the tetris game.
+   */
+  private TetrisMain() {
+    throw new IllegalStateException();
+  }
+  /**
+   * 
+   * @param the_args ingnored in this program.
+   */
+  public static void main(final String... the_args) {
+    //final SoundPlayer my_sound = new SoundPlayer();
+    //my_sound.loop("tetris/audio/consas.wav");
+    
+    EventQueue.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        new TetrisGUI(); // create the graphical user interface
+      }
+    });
+    final SoundPlayer sound = new SoundPlayer();
+    sound.loop("tetris/audio/Outro.wav");
+    
+  }
+
+}
